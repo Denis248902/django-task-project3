@@ -1,23 +1,14 @@
 # django-task-project3
 
-Проект на Django + DRF: API для управления сборами средств с ролевой моделью (админ / обычный пользователь) и базовой валидацией.
-
----
+Django + DRF API для управления сборами средств. Реализована ролевая модель: админ может создавать/редактировать, обычный пользователь — только просматривать. Также есть автопересчёт суммы собранных средств через сигналы.
 
 ## Быстрый старт (локально)
 
-### Подготовка окружения
+### 1. Клонирование и окружение
 
 ```bash
-# Клонируем (если ещё нет)
 git clone https://github.com/Denis248902/django-task-project3.git
 cd django-task-project3
-
-# Создаём виртуальное окружение
 python -m venv venv
-
-# Активируем (Windows / MINGW64)
-source venv/Scripts/activate
-
-# Устанавливаем зависимости
+source venv/Scripts/activate  # Windows / MINGW64
 pip install -r requirements.txt
