@@ -1,0 +1,42 @@
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+REASON_CHOICES = [
+    ("birthday", "День рождения"),
+    ("wedding", "Свадьба"),
+    ("travel", "Путешествие"),
+    ("education", "Образование"),
+    ("medical", "Медицина"),
+    ("other", "Другое"),
+]
+
+
+class Collect(models.Model):
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="collects"
+    )
+    title = models.CharField(max_length=200)
+    reason = models.CharField(max_length=50, choices=REASON_CHOICES, default="other")
+    description = models.TextField(blank=True, null=True)
+    target_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Сумма, которую планируют собрать. Оставьте пустым для «бесконечного» сбора.",
+    )
+    collected_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cover_image = models.ImageField(upload_to="collects/", blank=True, null=True)
+    end_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]  # <-- исправлено: сортируем по дате создания сбора
+
+    def __str__(self):
+        return f"{self.title} ({self.author})"
+
+    @property
+    def is_active(self):
+        return self.end_date > timezone.now()

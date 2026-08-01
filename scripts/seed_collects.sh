@@ -1,46 +1,35 @@
-#!/usr/bin/env bash
-set -euo pipefail
+echo "💵 Создаём тестовые платежи и обновляем collected_amount..."
 
-echo "🚀 Запуск seed_collects.sh..."
-
-# 1. Создаём пользователей
-python manage.py shell < scripts/create_users.py
-
-# 2. Создаём сборы
-python manage.py shell << 'INNER_EOF'
+python manage.py shell << 'EOF'
+import decimal
 from django.contrib.auth import get_user_model
-from collects.models import Collect
-from datetime import datetime, timedelta, timezone
+from collects.models import Collect, Payment
 
 User = get_user_model()
-admin = User.objects.get(username='admin')
-test_user = User.objects.get(username='test_user')
 
-now = datetime.now(timezone.utc)
+# Получаем пользователей
+try:
+    admin = User.objects.get(username='admin')
+    test_user = User.objects.get(username='test_user')
+except User.DoesNotExist as e:
+    print(f"❌ Пользователь не найден: {e}")
+    exit(1)
 
-if not Collect.objects.filter(title='Admin collect').exists():
-    Collect.objects.create(
-        author=admin,
-        title='Admin collect',
-        reason='wedding',
-        target_amount=10000,
-        end_date=now + timedelta(days=30)
-    )
-    print("✅ Сбор от админа создан.")
+# Берём первый сбор для тестов
+collect = Collect.objects.first()
+if not collect:
+    print("❌ Нет ни одного сбора — сначала создай сбор в скрипте.")
 else:
-    print("ℹ️ Сбор от админа уже существует.")
+    # Создаём несколько платежей
+    Payment.objects.create(collect=collect, payer=admin, amount=decimal.Decimal('1000.00'), comment="Взнос от автора")
+    Payment.objects.create(collect=collect, payer=test_user, amount=decimal.Decimal('500.00'), comment="Поддержка сбора")
+    Payment.objects.create(collect=collect, payer=test_user, amount=decimal.Decimal('200.00'), comment="Ещё немного")
 
-if not Collect.objects.filter(title='Test user collect').exists():
-    Collect.objects.create(
-        author=test_user,
-        title='Test user collect',
-        reason='birthday',
-        target_amount=5000,
-        end_date=now + timedelta(days=15)
-    )
-    print("✅ Сбор от test_user создан.")
-else:
-    print("ℹ️ Сбор от test_user уже существует.")
-INNER_EOF
+    # Пересчитываем collected_amount
+    total = sum(p.amount for p in collect.payments.all())
+    collect.collected_amount = total
+    collect.save()
+    print(f"✅ Платежи созданы. collected_amount = {total}")
+EOF
 
 echo "✅ Seed завершён."
