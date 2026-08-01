@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'emp_app',
     # DRF + JWT
     "rest_framework",
     "rest_framework_simplejwt",  # <-- обязательно для JWT
@@ -113,6 +114,9 @@ REST_FRAMEWORK = {
         # Session и Basic можно оставить, если нужно для админки/тестов
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
 }
 

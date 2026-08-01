@@ -8,13 +8,20 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
     # Твой API для Collect
     path("api/", include("collects.urls")),
-    # ВАЖНО: подключаем API для Payments
-    path("api/", include("payments.urls")),  # <-- добавь эту строку
+
+    # ✅ Подключаем твой API с правильными пермишнами
+    path("api/", include("api.urls")),
+
+    # API для Payments
+    path("api/", include("payments.urls")),
+
     # JWT endpoints
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
     # Документация (Swagger)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
