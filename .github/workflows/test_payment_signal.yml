@@ -1,0 +1,40 @@
+name: Test Payment Signal (smoke test)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Seed data (создаём сбор, админа и т.д.)
+        # Замени на свой seed-скрипт или команду
+        run: ./scripts/seed_data.sh
+
+      - name: Start Django server in background
+        run: python manage.py runserver 0.0.0.0:8000 &
+
+      - name: Wait for server to be ready
+        run: sleep 15
+
+      - name: Run payment signal test script
+        run: ./scripts/test_payment_signal.sh
